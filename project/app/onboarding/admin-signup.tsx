@@ -16,7 +16,6 @@ export default function AdminSignupScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [invalidEmail, setInvalidEmail] = useState(false);
-  const [type, setType] = useState('admin');
 
   // Form fields
   const [name, setName] = useState('');
@@ -67,49 +66,18 @@ export default function AdminSignupScreen() {
       setLoading(true);
 
       // Chamar API para registrar o admin
-      const response = await api.registerAdmin({
-        name,
-        email,
-        password,
-        unidade,
-        filial: unidade === 'filial' ? filial : undefined,
-        phone
-      });
-
-      // Login automático após cadastro bem-sucedido
-      await login(response.token, 'admin');
-
-      // Redirecionar para o app principal
-      router.replace('/(tabs)');
+      const response = await register(name, email, password, phone, 'admin');
+      if (response.token) {
+        console.log('Registro bem-sucedido!');
+        Alert.alert('Sucesso', 'Registro bem-sucedido!');
+        router.replace('/(tabs)');
+      } else {
+        setError('Ocorreu um erro durante o cadastro');
+      }
     } catch (err: any) {
       setError(err.message || 'Ocorreu um erro durante o cadastro');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleRegister = async () => {
-    console.log('Iniciando processo de registro...');
-    if (password !== confirmPassword) {
-      console.error('As senhas não coincidem.');
-      Alert.alert('Erro', 'As senhas não coincidem.');
-      return;
-    }
-
-    console.log('Senhas coincidem. Chamando método register...');
-    try {
-      const response = await register(name, email, password, phone, type);
-      if (response.success) {
-        console.log('Registro bem-sucedido!');
-        Alert.alert('Sucesso', 'Registro bem-sucedido!');
-        router.push('/dashboard');
-      } else {
-        console.error('Erro ao registrar usuário.');
-        Alert.alert('Erro', 'Erro ao registrar usuário.');
-      }
-    } catch (error) {
-      console.error('Erro ao registrar usuário:', error);
-      Alert.alert('Erro', 'Erro ao registrar usuário. Por favor, tente novamente.');
     }
   };
 
@@ -415,7 +383,7 @@ export default function AdminSignupScreen() {
         
         <TouchableOpacity
           style={[styles(colors).button, { backgroundColor: colors.primary }]}
-          onPress={handleRegister}
+          onPress={handleSignUp}
           disabled={loading}
         >
           {loading ? (
@@ -430,7 +398,6 @@ export default function AdminSignupScreen() {
 }
 
 const FILIAIS = [
-  { cidade: 'Goiânia', estado: 'GO' },
   { cidade: 'Caucaia', estado: 'CE' },
   { cidade: 'Uberaba', estado: 'MG' },
   { cidade: 'Porto Nacional', estado: 'TO' },
